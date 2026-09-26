@@ -17,6 +17,7 @@ fundamentals. It contains two self-contained parts, each in its own folder.
 ```
 module-3-aforakaiwa/
 ├── README.md            # You are here
+├── screenshot/          # Screenshots of both parts (desktop + mobile)
 ├── profile-page/        # Part 1 — HTML + CSS + JS profile page
 │   ├── index.html       #   page markup
 │   ├── styles.css       #   styling, grid layout, responsive breakpoints
@@ -76,6 +77,28 @@ aliases, and union types; live search across name, description, and tags;
 category filters; and a cart with add/remove controls and a Rupiah total.
 Rendering is driven by `map` / `filter` / `reduce` over typed arrays. See
 [`revoushopFE/README.md`](./revoushopFE/README.md) for more detail.
+
+## Screenshots
+
+### Part 1 — Profile page
+
+**Desktop**
+
+![Profile page on desktop](./screenshot/Profile_page-desktop.png)
+
+**Mobile**
+
+![Profile page on mobile](./screenshot/Profile_page-mobile.png)
+
+### Part 2 — Product catalog (live search + Tailwind styling)
+
+**Desktop**
+
+![Product catalog on desktop](./screenshot/Shop-desktop.png)
+
+**Mobile**
+
+![Product catalog on mobile](./screenshot/Shop-mobile.png)
 
 ## Author
 
