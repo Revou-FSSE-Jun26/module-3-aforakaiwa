@@ -4,53 +4,63 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Afo Rakaiwa - Fullstack Engineer in Training</title>
-    <meta name="description" content="Profile of Afo Rakaiwa, a fullstack engineer in training"
+    <meta name="description" content="Profile of Afo Rakaiwa, a fullstack engineer in training" />
+    <link rel="stylesheet" href="styles.css" />
 </head>
 <body>
-    <header>
-        <p>Afo Rakaiwa</p>
-        <ul>
-            <li><a>Resume</a></li>
-            <li><a>Contact</a></li>
+    <a class="skip-link" href="#main">Skip to content</a>
+
+    <header class="site-header">
+        <p class="site-header__brand">Afo Rakaiwa</p>
+        <ul class="nav-list">
+            <li><a href="#resume">Resume</a></li>
+            <li><a href="#contact">Contact</a></li>
         </ul>
     </header>
 
     <main id="main">
-        <section id="resume">
-            <div>
+        <section id="resume" class="resume">
+            <div class="resume__intro">
                 <h1 id="resume-title">My Resume</h1>
                 <p>I'm Afo, Fullstack Engineer in training. 
                     This page is for Assignment. I'm working 
                     towards RevouShop.</p>
             </div>
 
-            <article>
+            <figure class="resume__photo">
+            <div class="resume__photo-placeholder" role="img">
+                photo
+            </div>
+            </figure>
+
+
+            <article class="card card--grey">
                 <h2 id="about-title">About Me</h2>
                 <p>Enjoys turning messy ideas into simple, usable pages.</p>
-                <button>View More</button>
+                <button class="card__toggle">View More</button>
             </article>
 
-            <article>
+            <article class="card">
                 <h2>What I Do</h2>
                 <p>Build responsive websites with semantic HTML, CSS Grid, Flexbox and JavaScript.</p>
-                <button>View More</button>
+                <button class="card__toggle">View More</button>
             </article>
 
-            <article>
+            <article class="card">
                 <h2>How I Work</h2>
                 <p>Plan the content first, build mobile-first, then test on real screen sizes.</p>
-                <button>View More</button>
+                <button class="card__toggle">View More</button>
             </article>
 
-            <article>
+            <article class="card card--teal">
                 <h2>Contact Me</h2>
                 <p>Have a project, a question or feedback on my code? I'd like to hear it.</p>
-                <button>View More</button>
+                <button class="card__toggle" href="#contact">View More</button>
             </article>
         </section>
 
-        <section id="contact">
-            <div>
+        <section id="contact" class="contact">
+            <div class="contact__intro">
                 <h2 id="contact-title">Contact Me</h2>
                 <p>Send a message and I'll reply within two working days.</p>
                 <address>
@@ -60,20 +70,22 @@
                 </address>
             </div>
 
-            <form>
-                <div>
+            <form class="contact-form" action="#" method="post" novalidate>
+                <div class="field">
                     <label for="name">Full name</label>
                     <input id="name" name="name" type="text" placeholder="Full name" required />
+                    <p class="field__error">Enter your name.</p>
                 </div>
-                <div>
+                <div class="field">
                     <label for="email">Email</label>
                     <input id="email" name="email" type="email" placeholder="email" required />
+                    <p class="field__error">Enter a valid email, like you@example.com.</p>
                 </div>
-                <div>
-                    <label for="phone">Phone <span>(optional)</span></label>
+                <div class="field">
+                    <label for="phone">Phone <span class="optional">(optional)</span></label>
                     <input id="phone" name="phone" type="tel" placeholder="+62 810 1234 5678" />
                 </div>
-                <div>
+                <div class="field">
                     <label for="topic">Topic</label>
                     <select id="topic" name="topic">
                         <option value="project">A project</option>
@@ -82,25 +94,27 @@
                         <option value="other">Something else</option>
                     </select>
                 </div>
-                <div>
+                <div class="field field--full">
                     <label for="message">Message</label>
                     <textarea id="message" name="message" rows="5" required></textarea>
+                    <p class="field__error">Write at least 10 characters.</p>
                 </div>
-                <div>
+                <div class="field field--full field--inline">
                     <input id="newsletter" name="newsletter" type="checkbox" />
                     <label for="newsletter">Send me updates when RevouShop launches</label>
                 </div>
-                <div>
-                    <button type="submit">Send message</button>
+                <div class="field--full form-actions">
+                    <button type="submit" class="button">Send message</button>
                 </div>
             </form>
         </section>
     </main>
 
-    <footer>
+    <footer class="site-footer">
         <p>&copy; 2026 Afo Rakaiwa. Built with HTML and CSS, no frameworks.</p>
         <a>GitHub</a>
     </footer>
 
+    <script src="script.js"></script>
 </body>
 </html>

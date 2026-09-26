@@ -1,0 +1,306 @@
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+/* ---------- Design tokens ---------- */
+:root {
+    --bg: #ebe4e4;          /* page grey */
+    --card-grey: #c4c4c4;   /* "About Me" card */
+    --teal: #93a3a0;        /* "Contact Me" card, photo backdrop */
+    --teal-dark: #6f807c;
+    --ink: #111111;
+    --body: #4f4f4f;        /* darker than the mockup's grey so text passes contrast */
+    --on-teal: #2f3a38;
+    --white: #f7f7f7;
+
+    --font-heading: "Roboto", "Segoe UI", Arial, sans-serif;
+    --font-body: "Open Sans", "Segoe UI", Arial, sans-serif;
+
+    --gap: 0.75rem;
+    --pad: 2.25rem;
+    --page-width: 84rem;
+}
+
+body {
+  font-family: system-ui, sans-serif;
+  background: #f3f4f6;
+  color: #1f2937;
+  padding: 24px;
+}
+
+img { display: block; max-width: 100%; height: auto; }
+figure { margin: 0; }
+p { margin: 0 0 1rem; }
+
+h1, h2 {
+    margin: 0 0 1.25rem;
+    font-family: var(--font-heading);
+    line-height: 1.2;
+}
+h1 { font-size: clamp(2.2rem, 5vw, 2.75rem); font-weight: 700; }
+h2 { font-size: 1.35rem; font-weight: 700; }
+
+a { color: var(--ink); }
+
+:focus-visible {
+    outline: 3px solid var(--ink);
+    outline-offset: 3px;
+}
+
+.skip-link { position: absolute; left: -999px; }
+.skip-link:focus { left: 1rem; top: 1rem; background: var(--white); padding: 0.5rem 1rem; }
+
+/* Header (Flexbox) */
+
+.site-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    max-width: var(--page-width);
+    margin: 0 auto;
+    padding: 1.25rem 1.25rem 0;
+}
+.site-header__brand {
+    margin: 0;
+    font-family: var(--font-heading);
+    font-weight: 700;
+}
+.nav-list {
+    display: flex;
+    gap: 1.5rem;
+    list-style: none;
+    margin: 0;
+    padding: 0;
+}
+.nav-list a {
+    font-family: var(--font-heading);
+    font-weight: 500;
+    text-decoration: none;
+    border-bottom: 2px solid transparent;
+    }
+.nav-list a:hover { border-bottom-color: var(--ink); }
+
+main {
+    max-width: var(--page-width);
+    margin: 0 auto;
+    padding: 2rem 1.25rem 4rem;
+}
+
+/* Resume grid */
+.resume {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: var(--gap);
+    align-items: start;
+}
+.resume__intro {
+    padding: 1rem 0 2rem;
+}
+.resume__intro p {
+    max-width: 22rem;
+    font-family: var(--font-heading);
+    color: #2b2b2b;
+    line-height: 1.75;
+}
+
+.resume__photo-placeholder {
+    width: 330px;
+    height: 470px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: #e5e7eb;
+    color: #6b7280;
+    font-family: system-ui, sans-serif;
+    border-radius: 8px;
+}
+
+/* Cards (Flexbox column) */
+.card {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    padding: var(--pad);          /* space between content and edge */
+    border: 0;
+    margin: 0;                    /* spacing comes from the grid gap */
+    background: transparent;
+}
+.card p {
+    color: var(--body);
+    font-size: 1.05rem;
+}
+.card--grey { background: var(--card-grey); }
+.card--teal { background: var(--teal); }
+.card--teal p { color: var(--on-teal); }
+
+.card__toggle,
+.card__link {
+    margin-top: auto;             /* pushes it to the bottom of the card */
+    padding: 0 0 2px;
+    border: 0;
+    border-bottom: 3px solid var(--ink);
+    background: none;
+    color: var(--ink);
+    font: 400 1.05rem var(--font-body);
+    text-decoration: none;
+    cursor: pointer;
+}
+.card__toggle:hover,
+.card__link:hover { border-bottom-color: var(--teal-dark); }
+
+/* Contact section (Grid) */
+.contact {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 2rem;
+    margin-top: 5rem;
+    padding-top: 3rem;
+    border-top: 2px solid var(--ink);
+}
+.contact__intro p { color: var(--body); max-width: 24rem; }
+
+address {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+    font-style: normal;
+    font-family: var(--font-heading);
+    font-weight: 500;
+}
+
+.contact-form {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 1.25rem;
+    padding: var(--pad);
+    background: var(--teal);
+}
+
+.field {
+    display: flex;
+    flex-direction: column;
+    gap: 0.35rem;
+}
+.field label {
+    font-family: var(--font-heading);
+    font-weight: 500;
+}
+.optional { font-weight: 400; color: var(--on-teal); }
+
+/* Form controls (default / neutral state) */
+.field input,
+.field select,
+.field textarea {
+    padding: 0.85rem 1rem;
+    border: 3px solid transparent;  /* neutral by default */
+    background: #f5f5f5;            /* faded white */
+    color: var(--ink);
+    font: 400 1rem var(--font-body);
+}
+.field input::placeholder,
+.field textarea::placeholder {
+    color: #9a9a9a;
+}
+
+/* Error message under a field: hidden by default */
+.field__error {
+    margin: 0;
+    color: #8f1d1d;                 /* red text */
+    font: 700 1rem var(--font-heading);
+    display: none;
+}
+
+/*
+    Once the form has been submitted, we add the class "was-validated".
+    Then any invalid required field turns red and shows its error message.
+*/
+.was-validated .field input:invalid,
+.was-validated .field select:invalid,
+.was-validated .field textarea:invalid {
+    border-color: #8f1d1d;
+}
+.was-validated .field input:invalid ~ .field__error,
+.was-validated .field select:invalid ~ .field__error,
+.was-validated .field textarea:invalid ~ .field__error {
+    display: block;
+}
+
+.field--inline {
+    flex-direction: row;
+    align-items: center;
+    gap: 0.6rem;
+}
+.field--inline label { font-weight: 400; }
+
+.button {
+    padding: 0.8rem 1.6rem;
+    border: 2px solid var(--ink);
+    background: var(--ink);
+    color: var(--white);
+    font: 500 1rem var(--font-heading);
+    cursor: pointer;
+}
+.button:hover { background: transparent; color: var(--ink); }
+
+/* Footer */
+.site-footer {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    padding: 1.5rem 1.25rem;
+    background: var(--ink);
+    color: #cfcfcf;
+    font-size: 0.9rem;
+}
+.site-footer p { margin: 0; }
+.site-footer a { color: var(--white); }
+
+/* ==========================================================
+   Tablet (≥ 640px): 2-column grid
+   intro | photo
+   card  | card
+   card  | card
+   ========================================================== */
+@media (min-width: 40rem) {
+  .resume { grid-template-columns: repeat(2, 1fr); }
+  .card { min-height: 20rem; }  /* equal-looking cards once they sit side by side */
+
+  .contact-form { grid-template-columns: 1fr 1fr; }
+  .field--full { grid-column: 1 / -1; }
+
+  .site-footer {
+    flex-direction: row;
+    justify-content: space-between;
+  }
+}
+
+/* ==========================================================
+   Desktop (≥ 1024px): 4 columns × 2 rows, like the mockup
+   intro | photo | About Me  | What I Do
+         | photo | How I Work| Contact Me
+   ========================================================== */
+@media (min-width: 64rem) {
+    .site-header,
+    main { padding-inline: 2.5rem; }
+
+    .resume {
+        grid-template-columns: 1fr 1.05fr 1fr 1fr;
+        grid-template-rows: auto auto;
+    }
+    .resume__intro { grid-column: 1; grid-row: 1 / 3; padding-top: 2rem; }
+    .resume__photo { grid-column: 2; grid-row: 1 / 3; }
+    .card:nth-of-type(1) { grid-column: 3; grid-row: 1; }
+    .card:nth-of-type(2) { grid-column: 4; grid-row: 1; }
+    .card:nth-of-type(3) { grid-column: 3; grid-row: 2; }
+    .card:nth-of-type(4) { grid-column: 4; grid-row: 2; }
+
+    .contact {
+        grid-template-columns: 1fr 2fr;
+        gap: 3rem;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .arrow-link svg { transition: none; }
+    html { scroll-behavior: auto; }
+}
+html { scroll-behavior: smooth; }
+    
