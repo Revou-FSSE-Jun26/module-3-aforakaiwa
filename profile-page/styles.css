@@ -102,8 +102,9 @@ main {
 }
 
 .resume__photo-placeholder {
-    width: 330px;
-    height: 470px;
+    width: 100%;              /* fill the column instead of a fixed 330px */
+    max-width: 330px;         /* but never wider than the original size */
+    aspect-ratio: 330 / 470;  /* keep the same shape without a fixed height */
     display: flex;
     align-items: center;
     justify-content: center;
