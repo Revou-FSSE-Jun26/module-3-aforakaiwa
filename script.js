@@ -11,3 +11,19 @@ if (form) {
     form.classList.add("was-validated");
   });
 }
+
+// "View More" toggle for each card
+const toggleButtons = document.querySelectorAll(".card__toggle");
+
+toggleButtons.forEach(function (button) {
+  button.addEventListener("click", function () {
+    const card = button.closest(".card");
+
+    // Toggle the open state on the card and read the new state back
+    const isOpen = card.classList.toggle("is-open");
+
+    // Update the button label and accessibility state
+    button.textContent = isOpen ? "View Less" : "View More";
+    button.setAttribute("aria-expanded", isOpen);
+  });
+});

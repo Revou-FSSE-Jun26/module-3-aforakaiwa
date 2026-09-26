@@ -127,6 +127,10 @@ main {
     color: var(--body);
     font-size: 1.05rem;
 }
+/* Extra text is hidden until the card is toggled open */
+.card__more { display: none; }
+.card.is-open .card__more { display: block; }
+
 .card--grey { background: var(--card-grey); }
 .card--teal { background: var(--teal); }
 .card--teal p { color: var(--on-teal); }
@@ -303,4 +307,3 @@ address {
     html { scroll-behavior: auto; }
 }
 html { scroll-behavior: smooth; }
-    
