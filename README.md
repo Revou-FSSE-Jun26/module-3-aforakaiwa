@@ -103,3 +103,39 @@ Rendering is driven by `map` / `filter` / `reduce` over typed arrays. See
 ## Author
 
 Afo Rakaiwa — RevoU Full Stack Software Engineering.
+
+---
+
+## Archive — Checkpoint 1 (fundamentals)
+
+> The content below is the original **Checkpoint 1** documentation, kept here
+> for reference. The actual Checkpoint 1 code (the folders mentioned) is **not
+> on this `main` branch** — it lives on the
+> [`checkpoint-1`](../../tree/checkpoint-1) branch. This section is an archive
+> only; the paths below resolve on that branch.
+
+Checkpoint 1 covered HTML, CSS, JavaScript, TypeScript, and Tailwind CSS
+fundamentals. It contained two self-contained parts, each in its own folder.
+
+### What each folder contained
+
+| Folder | Contents | Main tech |
+| --- | --- | --- |
+| `profile-page/` | A semantic profile / resume page with a contact form. Plain `index.html`, `styles.css`, and `script.js` — no build step. | HTML5, CSS Grid, vanilla JS |
+| `revoushopFE/` | A typed, interactive product catalog. TypeScript source in `src/`, compiled output in `dist/`, and a Tailwind setup. Needs a build step. | TypeScript, Tailwind CSS |
+
+**Part 1 — Profile page.** Semantic layout (`header`, `main`, `section`,
+`article`, `figure`, `address`, `footer`), a contact form with typed inputs and
+labels, CSS Grid layouts, mobile-first responsive breakpoints, plus "View More"
+toggles and on-submit form validation.
+
+**Part 2 — Product catalog.** Product data modeled with interfaces, type
+aliases, and union types; live search across name, description, and tags;
+category filters; and a cart with add/remove controls and a Rupiah total.
+Rendering is driven by `map` / `filter` / `reduce` over typed arrays.
+
+To view or run Checkpoint 1, check out the `checkpoint-1` branch:
+
+```bash
+git checkout checkpoint-1
+```
