@@ -65,18 +65,23 @@ export default function ProductCard({
         {inStock ? `In stock: ${stock.quantity}` : "Out of stock"}
       </span>
 
-      {/* Title links to the detail page */}
-      <h3 className="font-semibold text-gray-900">
-        <Link href={`/products/${product.product_id}`} className="hover:text-brand">
+      {/* Title links to the detail page (reserve 2 lines so cards align) */}
+      <h3 className="min-h-[3rem] font-semibold text-gray-900">
+        <Link
+          href={`/products/${product.product_id}`}
+          className="line-clamp-2 hover:text-brand"
+        >
           {product.product_name}
         </Link>
       </h3>
 
-      <p className="mt-1 line-clamp-2 text-sm text-gray-600">
+      {/* Description reserves 2 lines so the price/button rows line up */}
+      <p className="mt-1 line-clamp-2 min-h-[2.5rem] text-sm text-gray-600">
         {product.description ?? "No description available."}
       </p>
 
-      <p className="mt-3 text-lg font-bold text-gray-900">
+      {/* Push price + actions to the bottom so they align across all cards */}
+      <p className="mt-auto pt-3 text-lg font-bold text-gray-900">
         {formatRupiah(product.price)}
       </p>
 
