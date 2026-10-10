@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { getProducts, getCategories } from "@/lib/api";
-import ProductCard from "@/components/ProductCard";
 import SearchControls from "@/components/SearchControls";
+import ProductCatalog from "@/components/ProductCatalog";
 import type { Product } from "@/types";
 
 export const metadata: Metadata = {
@@ -49,26 +49,13 @@ export default async function ProductsPage({
     <section className="space-y-4">
       <SearchControls categories={categories} />
 
-      <p className="text-sm text-gray-600">
-        Showing {filtered.length} of {data.total_items} products
-        {q && (
-          <>
-            {" "}
-            for <span className="font-medium">&ldquo;{q}&rdquo;</span>
-          </>
-        )}
-        .
-      </p>
-
-      {filtered.length === 0 ? (
-        <p className="text-gray-600">No products match your filters.</p>
-      ) : (
-        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-          {filtered.map((product) => (
-            <ProductCard key={product.product_id} product={product} />
-          ))}
-        </div>
+      {q && (
+        <p className="text-sm text-gray-600">
+          Results for <span className="font-medium">&ldquo;{q}&rdquo;</span>.
+        </p>
       )}
+
+      <ProductCatalog initialProducts={filtered} totalItems={data.total_items} />
     </section>
   );
 }
