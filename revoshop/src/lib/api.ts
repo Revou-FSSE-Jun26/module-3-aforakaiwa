@@ -105,6 +105,49 @@ export async function getOrders(token?: string): Promise<Order[]> {
   });
 }
 
+/**
+ * Result of trying to load orders. Orders are auth-protected on the API, so
+ * without a valid JWT the request is unauthorized. We model that as data
+ * rather than throwing, so the page can show a clear "sign in" notice
+ * instead of a generic error.
+ */
+export type OrdersResult =
+  | { status: "ok"; orders: Order[] }
+  | { status: "unauthorized" }
+  | { status: "error"; message: string };
+
+/** Fetch orders and classify the outcome (ok / unauthorized / error). */
+export async function getOrdersResult(token?: string): Promise<OrdersResult> {
+  if (!BASE_URL) {
+    return { status: "error", message: "API base URL is not configured." };
+  }
+  try {
+    const res = await fetch(`${BASE_URL}/orders`, {
+      next: { revalidate: 30 },
+      headers: {
+        Accept: "application/json",
+        ...(token ? { Authorization: `Bearer ${token}` } : {}),
+      },
+    });
+
+    if (res.status === 401 || res.status === 422) {
+      return { status: "unauthorized" };
+    }
+    if (!res.ok) {
+      return {
+        status: "error",
+        message: `Orders request failed: ${res.status}`,
+      };
+    }
+    return { status: "ok", orders: (await res.json()) as Order[] };
+  } catch (e) {
+    return {
+      status: "error",
+      message: e instanceof Error ? e.message : "Unknown error",
+    };
+  }
+}
+
 /** Format a number as Indonesian Rupiah, e.g. 1450000 -> "Rp1.450.000". */
 export function formatRupiah(amount: number): string {
   return new Intl.NumberFormat("id-ID", {
