@@ -90,6 +90,34 @@ revoshop/
   summary shows item count and total (Rupiah) via `reduce`.
 - **Add product** — a validated form appends a new typed product to the list.
 
+## Screenshots
+
+Running locally against the live API.
+
+### Home
+![Home](./Doc/1-Home.png)
+
+### Products — grid of real products from the API
+![Products](./Doc/2-Product.png)
+
+### Products — live search (updates the URL query)
+![Live search](./Doc/3-Product-Live_search.png)
+
+### Products — category filter
+![Category filter](./Doc/4-Product-Filtered_category.png)
+
+### Product detail — dynamic page title
+![Product detail](./Doc/5-Product-Detail.png)
+
+### Active-route highlight in the nav
+![Active route](./Doc/6-Active_route.png)
+
+### Cart — Add to Cart with item count and Rupiah total
+![Cart](./Doc/7-Cart.png)
+
+### Add product — validated form appends to the list
+![Add product](./Doc/8-Add_product.png)
+
 ## Note on the Orders route
 
 The Module 2 API protects `GET /orders` with JWT auth, so without a valid
