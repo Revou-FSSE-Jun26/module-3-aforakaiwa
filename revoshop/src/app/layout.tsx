@@ -12,11 +12,7 @@ export const metadata: Metadata = {
     "RevoShop storefront — RevoU FSSE Module 3 Checkpoint 2, built with Next.js.",
 };
 
-export default function RootLayout({
-  children,
-}: {
-  children: React.ReactNode;
-}) {
+export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
     <html lang="en" className="h-full antialiased">
       <body className="flex min-h-full flex-col bg-gray-50 text-gray-900">
