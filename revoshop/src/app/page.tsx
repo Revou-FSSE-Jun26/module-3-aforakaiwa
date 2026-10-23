@@ -1,7 +1,26 @@
 import Link from "next/link";
 import Card from "@/components/Card";
+import ProductCard from "@/components/ProductCard";
+import { getProducts } from "@/lib/api";
+import type { Product } from "@/types";
 
-export default function Home() {
+/**
+ * Home page (Server Component).
+ * Keeps the hero + navigation cards, and shows a short "Featured products"
+ * strip of 5 real products fetched from the API. The fetch is wrapped in
+ * try/catch so a backend outage degrades gracefully instead of crashing.
+ */
+export default async function Home() {
+  let featured: Product[] = [];
+  let productsUnavailable = false;
+
+  try {
+    const { products } = await getProducts(1, 5);
+    featured = products;
+  } catch {
+    productsUnavailable = true;
+  }
+
   return (
     <div className="space-y-8">
       <section className="rounded-2xl bg-brand px-6 py-12 text-white sm:px-12">
@@ -16,6 +35,36 @@ export default function Home() {
         >
           Browse products
         </Link>
+      </section>
+
+      <section className="space-y-4">
+        <div className="flex items-center justify-between">
+          <h2 className="text-xl font-semibold text-gray-900">
+            Featured products
+          </h2>
+          <Link
+            href="/products"
+            className="text-sm font-medium text-brand hover:underline"
+          >
+            View all &rarr;
+          </Link>
+        </div>
+
+        {productsUnavailable ? (
+          <p className="text-sm text-gray-600">
+            Products are temporarily unavailable. Please try again later.
+          </p>
+        ) : (
+          <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
+            {featured.map((product) => (
+              <ProductCard
+                key={product.product_id}
+                product={product}
+                showAddToCart={false}
+              />
+            ))}
+          </div>
+        )}
       </section>
 
       <section className="grid gap-4 sm:grid-cols-3">

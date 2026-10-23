@@ -5,3 +5,7 @@
 # Dependencies
 node_modules/
 **/node_modules/
+
+# Agent task artifacts (local notes, verification logs)
+.agents/
+**/.agents/

@@ -54,14 +54,18 @@ async function apiFetch<T>(
   return (await res.json()) as T;
 }
 
-/** GET /products?page=&per_page= — returns the paginated envelope. */
+/** GET /products?page=&per_page=&q= — returns the paginated envelope. */
 export async function getProducts(
   page = 1,
   perPage = 5,
+  q = "",
 ): Promise<PaginatedProducts> {
-  return apiFetch<PaginatedProducts>(
-    `/products?page=${page}&per_page=${perPage}`,
-  );
+  const params = new URLSearchParams({
+    page: String(page),
+    per_page: String(perPage),
+  });
+  if (q) params.set("q", q);
+  return apiFetch<PaginatedProducts>(`/products?${params.toString()}`);
 }
 
 /** Convenience: fetch just the product array for a page. */

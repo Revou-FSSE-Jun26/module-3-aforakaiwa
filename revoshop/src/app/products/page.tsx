@@ -2,22 +2,10 @@ import type { Metadata } from "next";
 import { getProducts, getCategories } from "@/lib/api";
 import SearchControls from "@/components/SearchControls";
 import ProductCatalog from "@/components/ProductCatalog";
-import type { Product } from "@/types";
 
 export const metadata: Metadata = {
   title: "Products",
 };
-
-/** Case-insensitive match against name, description, and SKU. */
-function matchesQuery(product: Product, q: string): boolean {
-  if (!q) return true;
-  const needle = q.toLowerCase();
-  return (
-    product.product_name.toLowerCase().includes(needle) ||
-    (product.description?.toLowerCase().includes(needle) ?? false) ||
-    product.sku.toLowerCase().includes(needle)
-  );
-}
 
 /**
  * Products list page (Server Component).
@@ -31,19 +19,42 @@ export default async function ProductsPage({
   const q = typeof params.q === "string" ? params.q : "";
   const category = typeof params.category === "string" ? params.category : "";
 
-  // Fetch everything we need in parallel: products + categories (for the filter).
-  const [data, categories] = await Promise.all([
-    getProducts(1, 100),
+  const PER_PAGE = 100;
+
+  // Fetch the first page of products (filtered by q on the backend) plus the
+  // categories list for the filter dropdown, in parallel.
+  const [firstPage, categories] = await Promise.all([
+    getProducts(1, PER_PAGE, q),
     getCategories(),
   ]);
 
-  // Filter by category and search query on the server.
-  const filtered = data.products.filter((product) => {
-    const inCategory = category
-      ? String(product.category_id) === category
-      : true;
-    return inCategory && matchesQuery(product, q);
-  });
+  // Text search (q) is handled by the backend. Category has no backend param,
+  // so it must be filtered client-side. When a category IS selected we need
+  // the FULL set of matching products — not just the first page — otherwise
+  // products beyond the first page would never be considered. Paginate through
+  // the remaining pages (capped at total_pages from the first response to
+  // guard against a runaway loop) and concatenate the results.
+  let allProducts = firstPage.products;
+  if (category && firstPage.total_pages > 1) {
+    const rest = await Promise.all(
+      Array.from({ length: firstPage.total_pages - 1 }, (_, i) =>
+        getProducts(i + 2, PER_PAGE, q),
+      ),
+    );
+    allProducts = rest.reduce(
+      (acc, page) => acc.concat(page.products),
+      allProducts,
+    );
+  }
+
+  const filtered = category
+    ? allProducts.filter((p) => String(p.category_id) === category)
+    : allProducts;
+
+  // When filtering by category client-side, `filtered` IS the complete set, so
+  // its length is the true total. Without a category the backend's total_items
+  // is the authoritative count (which may exceed the first page shown).
+  const totalItems = category ? filtered.length : firstPage.total_items;
 
   return (
     <section className="space-y-4">
@@ -55,7 +66,7 @@ export default async function ProductsPage({
         </p>
       )}
 
-      <ProductCatalog initialProducts={filtered} totalItems={data.total_items} />
+      <ProductCatalog initialProducts={filtered} totalItems={totalItems} />
     </section>
   );
 }
