@@ -1,5 +1,6 @@
 import Link from "next/link";
 import Nav from "./Nav";
+import AuthNav from "./AuthNav";
 
 /**
  * Top app bar: shows the RevoShop brand and the main navigation.
@@ -15,7 +16,10 @@ export default function Header() {
           </span>
           <span className="text-lg font-bold text-gray-900">RevoShop</span>
         </Link>
-        <Nav />
+        <div className="flex items-center gap-4">
+          <Nav />
+          <AuthNav />
+        </div>
       </div>
     </header>
   );
