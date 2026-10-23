@@ -394,6 +394,77 @@ export async function createProduct(
   }
 }
 
+// ---------------------------------------------------------------------------
+// Order creation (checkout). POST /orders is auth-protected: the signed-in
+// user's JWT identifies the buyer. The body carries the shipping address and
+// the cart lines; the backend computes total_amount server-side.
+// ---------------------------------------------------------------------------
+
+/** A single cart line as the backend expects it on POST /orders. */
+export interface OrderLineInput {
+  product_id: number;
+  quantity: number;
+}
+
+/** Fields POST /orders accepts. */
+export interface CreateOrderInput {
+  shipping_address: string;
+  items: OrderLineInput[];
+}
+
+/**
+ * Outcome of POST /orders:
+ *  - 201 -> created (returns the new order with its server-computed total)
+ *  - 400 -> validation error (flattened to one message)
+ *  - 401/422 -> not authenticated (missing/expired token)
+ *  - anything else / network -> generic error
+ */
+export type CreateOrderResult =
+  | { status: "created"; order: Order }
+  | { status: "validation"; message: string }
+  | { status: "unauthorized" }
+  | { status: "error"; message: string };
+
+/** POST /orders with a Bearer token. Classifies the response for the caller. */
+export async function createOrder(
+  input: CreateOrderInput,
+  token: string,
+): Promise<CreateOrderResult> {
+  if (!BASE_URL) {
+    return { status: "error", message: "API base URL is not configured." };
+  }
+  try {
+    const res = await fetch(`${BASE_URL}/orders`, {
+      method: "POST",
+      cache: "no-store",
+      headers: {
+        "Content-Type": "application/json",
+        Accept: "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+      body: JSON.stringify(input),
+    });
+
+    if (res.status === 201) {
+      const data = (await res.json()) as { order: Order };
+      return { status: "created", order: data.order };
+    }
+    if (res.status === 400) {
+      const body = await res.json().catch(() => null);
+      return { status: "validation", message: formatValidationError(body) };
+    }
+    if (res.status === 401 || res.status === 422) {
+      return { status: "unauthorized" };
+    }
+    return { status: "error", message: `Request failed: ${res.status}` };
+  } catch (e) {
+    return {
+      status: "error",
+      message: e instanceof Error ? e.message : "Unknown error",
+    };
+  }
+}
+
 /** Format a number as Indonesian Rupiah, e.g. 1450000 -> "Rp1.450.000". */
 export function formatRupiah(amount: number): string {
   return new Intl.NumberFormat("id-ID", {

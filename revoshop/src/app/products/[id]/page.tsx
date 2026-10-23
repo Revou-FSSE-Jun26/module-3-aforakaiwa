@@ -4,6 +4,7 @@ import { notFound } from "next/navigation";
 import { getProduct, getCategoryWithProducts, formatRupiah } from "@/lib/api";
 import Card from "@/components/Card";
 import ProductCard from "@/components/ProductCard";
+import AddToCartButton from "@/components/AddToCartButton";
 
 /**
  * Dynamic page title based on the product. The root layout's title template
@@ -79,6 +80,10 @@ export default async function ProductDetailPage({
         <p className="mt-6 text-3xl font-bold text-gray-900">
           {formatRupiah(product.price)}
         </p>
+
+        <div className="mt-6">
+          <AddToCartButton product={product} />
+        </div>
       </Card>
 
       {related.length > 0 && (

@@ -5,7 +5,8 @@ import ProductCard from "./ProductCard";
 import CartSummary from "./CartSummary";
 import AddProductForm from "./AddProductForm";
 import Card from "./Card";
-import type { CartItem, Product } from "@/types";
+import { useCart } from "@/context/CartContext";
+import type { Product } from "@/types";
 
 interface ProductCatalogProps {
   /** Products already filtered on the server (by ?q= and ?category=). */
@@ -25,37 +26,12 @@ export default function ProductCatalog({
   // Locally-added products are kept separate so server-driven search/filter
   // (which replaces initialProducts) doesn't wipe them out.
   const [addedProducts, setAddedProducts] = useState<Product[]>([]);
-  const [cart, setCart] = useState<CartItem[]>([]);
+
+  // Cart now lives in the global CartContext (localStorage-backed), so adding
+  // from the grid fills the same cart used by /cart and /checkout.
+  const { items: cart, addToCart, removeFromCart, clearCart } = useCart();
 
   const products = [...addedProducts, ...initialProducts];
-
-  /** Add a product to the cart immutably (merge quantities if already present). */
-  function handleAddToCart(product: Product, quantity: number) {
-    setCart((prev) => {
-      const existing = prev.find(
-        (item) => item.product.product_id === product.product_id,
-      );
-      if (existing) {
-        // Return a new array with the matching item replaced (immutable).
-        return prev.map((item) =>
-          item.product.product_id === product.product_id
-            ? { ...item, quantity: item.quantity + quantity }
-            : item,
-        );
-      }
-      return [...prev, { product, quantity }];
-    });
-  }
-
-  function handleRemoveFromCart(productId: number) {
-    setCart((prev) =>
-      prev.filter((item) => item.product.product_id !== productId),
-    );
-  }
-
-  function handleClearCart() {
-    setCart([]);
-  }
 
   function handleAddProduct(product: Product) {
     // Prepend immutably so it shows at the top of the list.
@@ -78,7 +54,7 @@ export default function ProductCatalog({
               <ProductCard
                 key={product.product_id}
                 product={product}
-                onAddToCart={handleAddToCart}
+                onAddToCart={addToCart}
               />
             ))}
           </div>
@@ -90,8 +66,8 @@ export default function ProductCatalog({
         <Card className="p-5">
           <CartSummary
             items={cart}
-            onRemove={handleRemoveFromCart}
-            onClear={handleClearCart}
+            onRemove={removeFromCart}
+            onClear={clearCart}
           />
         </Card>
         <Card className="p-5">
