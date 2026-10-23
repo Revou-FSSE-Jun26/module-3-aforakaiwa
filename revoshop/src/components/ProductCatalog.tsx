@@ -1,9 +1,7 @@
 "use client";
 
-import { useState } from "react";
 import ProductCard from "./ProductCard";
 import CartSummary from "./CartSummary";
-import AddProductForm from "./AddProductForm";
 import Card from "./Card";
 import { useCart } from "@/context/CartContext";
 import type { Product } from "@/types";
@@ -15,42 +13,31 @@ interface ProductCatalogProps {
 }
 
 /**
- * Client orchestrator that wires the product grid, the cart, and the
- * add-product form together. All state updates are immutable (new arrays
- * via map/filter/spread, never mutating the previous state).
+ * Client orchestrator for the public product catalog: the product grid plus a
+ * cart summary sidebar. Adding to the cart writes to the global CartContext
+ * (localStorage-backed), the same cart used by /cart and /checkout.
+ *
+ * Product creation now lives in the admin dashboard (ProductManager), so this
+ * public page no longer embeds an admin-only form.
  */
 export default function ProductCatalog({
   initialProducts,
   totalItems,
 }: ProductCatalogProps) {
-  // Locally-added products are kept separate so server-driven search/filter
-  // (which replaces initialProducts) doesn't wipe them out.
-  const [addedProducts, setAddedProducts] = useState<Product[]>([]);
-
-  // Cart now lives in the global CartContext (localStorage-backed), so adding
-  // from the grid fills the same cart used by /cart and /checkout.
   const { items: cart, addToCart, removeFromCart, clearCart } = useCart();
-
-  const products = [...addedProducts, ...initialProducts];
-
-  function handleAddProduct(product: Product) {
-    // Prepend immutably so it shows at the top of the list.
-    setAddedProducts((prev) => [product, ...prev]);
-  }
 
   return (
     <div className="grid gap-6 lg:grid-cols-[1fr_320px]">
       {/* Product grid */}
       <div>
         <p className="mb-4 text-sm text-gray-600">
-          Showing {products.length} of {totalItems + addedProducts.length}{" "}
-          products.
+          Showing {initialProducts.length} of {totalItems} products.
         </p>
-        {products.length === 0 ? (
+        {initialProducts.length === 0 ? (
           <p className="text-gray-600">No products match your filters.</p>
         ) : (
           <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
-            {products.map((product) => (
+            {initialProducts.map((product) => (
               <ProductCard
                 key={product.product_id}
                 product={product}
@@ -61,7 +48,7 @@ export default function ProductCatalog({
         )}
       </div>
 
-      {/* Sidebar: cart + add product */}
+      {/* Sidebar: cart summary */}
       <aside className="space-y-6">
         <Card className="p-5">
           <CartSummary
@@ -69,9 +56,6 @@ export default function ProductCatalog({
             onRemove={removeFromCart}
             onClear={clearCart}
           />
-        </Card>
-        <Card className="p-5">
-          <AddProductForm onAdd={handleAddProduct} />
         </Card>
       </aside>
     </div>

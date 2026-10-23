@@ -541,6 +541,250 @@ export async function createOrder(
   }
 }
 
+// ---------------------------------------------------------------------------
+// Admin CRUD: product update/delete, full category CRUD, and the admin order
+// overview. All are Admin-only on the backend and take the admin's JWT.
+// ---------------------------------------------------------------------------
+
+/** Fields PUT /products/:id accepts (all optional — partial update). */
+export interface UpdateProductInput {
+  category_id?: number;
+  product_name?: string;
+  sku?: string;
+  price?: number;
+  stock_quantity?: number;
+  description?: string;
+}
+
+export type UpdateProductResult =
+  | { status: "updated"; product: Product }
+  | { status: "validation"; message: string }
+  | { status: "conflict"; message: string }
+  | { status: "unauthorized" }
+  | { status: "forbidden"; message: string }
+  | { status: "not-found" }
+  | { status: "error"; message: string };
+
+/** PUT /products/:id with a Bearer token. */
+export async function updateProduct(
+  id: number | string,
+  input: UpdateProductInput,
+  token: string,
+): Promise<UpdateProductResult> {
+  if (!BASE_URL) return { status: "error", message: "API base URL is not configured." };
+  try {
+    const res = await fetch(`${BASE_URL}/products/${id}`, {
+      method: "PUT",
+      cache: "no-store",
+      headers: {
+        "Content-Type": "application/json",
+        Accept: "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+      body: JSON.stringify(input),
+    });
+    if (res.ok) {
+      const data = (await res.json()) as { product?: Product } & Partial<Product>;
+      // Backend may return { product } or the product directly; handle both.
+      const product = (data.product ?? (data as Product)) as Product;
+      return { status: "updated", product };
+    }
+    if (res.status === 400) {
+      const body = await res.json().catch(() => null);
+      return { status: "validation", message: formatValidationError(body) };
+    }
+    if (res.status === 409) {
+      const body = (await res.json().catch(() => null)) as { error?: string } | null;
+      return { status: "conflict", message: body?.error ?? "That SKU already exists." };
+    }
+    if (res.status === 401 || res.status === 422) return { status: "unauthorized" };
+    if (res.status === 403) {
+      const body = (await res.json().catch(() => null)) as { message?: string } | null;
+      return { status: "forbidden", message: body?.message ?? "Admins only." };
+    }
+    if (res.status === 404) return { status: "not-found" };
+    return { status: "error", message: `Request failed: ${res.status}` };
+  } catch (e) {
+    return { status: "error", message: e instanceof Error ? e.message : "Unknown error" };
+  }
+}
+
+export type DeleteResult =
+  | { status: "deleted" }
+  | { status: "conflict"; message: string } // e.g. product has active orders
+  | { status: "unauthorized" }
+  | { status: "forbidden"; message: string }
+  | { status: "not-found" }
+  | { status: "error"; message: string };
+
+/** DELETE /products/:id. 409 means the product has active orders. */
+export async function deleteProduct(
+  id: number | string,
+  token: string,
+): Promise<DeleteResult> {
+  if (!BASE_URL) return { status: "error", message: "API base URL is not configured." };
+  try {
+    const res = await fetch(`${BASE_URL}/products/${id}`, {
+      method: "DELETE",
+      cache: "no-store",
+      headers: { Accept: "application/json", Authorization: `Bearer ${token}` },
+    });
+    if (res.ok) return { status: "deleted" };
+    if (res.status === 409) {
+      const body = (await res.json().catch(() => null)) as { error?: string } | null;
+      return {
+        status: "conflict",
+        message: body?.error ?? "Cannot delete product with active orders.",
+      };
+    }
+    if (res.status === 401 || res.status === 422) return { status: "unauthorized" };
+    if (res.status === 403) {
+      const body = (await res.json().catch(() => null)) as { message?: string } | null;
+      return { status: "forbidden", message: body?.message ?? "Admins only." };
+    }
+    if (res.status === 404) return { status: "not-found" };
+    return { status: "error", message: `Request failed: ${res.status}` };
+  } catch (e) {
+    return { status: "error", message: e instanceof Error ? e.message : "Unknown error" };
+  }
+}
+
+/** Fields POST/PUT /categories accept. */
+export interface CategoryInput {
+  category_name: string;
+  description: string;
+}
+
+export type CreateCategoryResult =
+  | { status: "created"; category: Category }
+  | { status: "validation"; message: string }
+  | { status: "conflict"; message: string }
+  | { status: "unauthorized" }
+  | { status: "forbidden"; message: string }
+  | { status: "error"; message: string };
+
+/** Normalize a category response that may be { category } or the object itself. */
+function readCategory(data: unknown): Category {
+  const d = data as { category?: Category } & Partial<Category>;
+  return (d.category ?? (d as Category)) as Category;
+}
+
+/** POST /categories with a Bearer token. */
+export async function createCategory(
+  input: CategoryInput,
+  token: string,
+): Promise<CreateCategoryResult> {
+  if (!BASE_URL) return { status: "error", message: "API base URL is not configured." };
+  try {
+    const res = await fetch(`${BASE_URL}/categories`, {
+      method: "POST",
+      cache: "no-store",
+      headers: {
+        "Content-Type": "application/json",
+        Accept: "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+      body: JSON.stringify(input),
+    });
+    if (res.status === 201 || res.ok) {
+      return { status: "created", category: readCategory(await res.json()) };
+    }
+    if (res.status === 400) {
+      const body = await res.json().catch(() => null);
+      return { status: "validation", message: formatValidationError(body) };
+    }
+    if (res.status === 409) {
+      const body = (await res.json().catch(() => null)) as { error?: string } | null;
+      return { status: "conflict", message: body?.error ?? "That category already exists." };
+    }
+    if (res.status === 401 || res.status === 422) return { status: "unauthorized" };
+    if (res.status === 403) {
+      const body = (await res.json().catch(() => null)) as { message?: string } | null;
+      return { status: "forbidden", message: body?.message ?? "Admins only." };
+    }
+    return { status: "error", message: `Request failed: ${res.status}` };
+  } catch (e) {
+    return { status: "error", message: e instanceof Error ? e.message : "Unknown error" };
+  }
+}
+
+export type UpdateCategoryResult =
+  | { status: "updated"; category: Category }
+  | { status: "validation"; message: string }
+  | { status: "conflict"; message: string }
+  | { status: "unauthorized" }
+  | { status: "forbidden"; message: string }
+  | { status: "not-found" }
+  | { status: "error"; message: string };
+
+/** PUT /categories/:id with a Bearer token (partial update allowed). */
+export async function updateCategory(
+  id: number | string,
+  input: Partial<CategoryInput>,
+  token: string,
+): Promise<UpdateCategoryResult> {
+  if (!BASE_URL) return { status: "error", message: "API base URL is not configured." };
+  try {
+    const res = await fetch(`${BASE_URL}/categories/${id}`, {
+      method: "PUT",
+      cache: "no-store",
+      headers: {
+        "Content-Type": "application/json",
+        Accept: "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+      body: JSON.stringify(input),
+    });
+    if (res.ok) return { status: "updated", category: readCategory(await res.json()) };
+    if (res.status === 400) {
+      const body = await res.json().catch(() => null);
+      return { status: "validation", message: formatValidationError(body) };
+    }
+    if (res.status === 409) {
+      const body = (await res.json().catch(() => null)) as { error?: string } | null;
+      return { status: "conflict", message: body?.error ?? "That category name is taken." };
+    }
+    if (res.status === 401 || res.status === 422) return { status: "unauthorized" };
+    if (res.status === 403) {
+      const body = (await res.json().catch(() => null)) as { message?: string } | null;
+      return { status: "forbidden", message: body?.message ?? "Admins only." };
+    }
+    if (res.status === 404) return { status: "not-found" };
+    return { status: "error", message: `Request failed: ${res.status}` };
+  } catch (e) {
+    return { status: "error", message: e instanceof Error ? e.message : "Unknown error" };
+  }
+}
+
+/** DELETE /categories/:id with a Bearer token. */
+export async function deleteCategory(
+  id: number | string,
+  token: string,
+): Promise<DeleteResult> {
+  if (!BASE_URL) return { status: "error", message: "API base URL is not configured." };
+  try {
+    const res = await fetch(`${BASE_URL}/categories/${id}`, {
+      method: "DELETE",
+      cache: "no-store",
+      headers: { Accept: "application/json", Authorization: `Bearer ${token}` },
+    });
+    if (res.ok) return { status: "deleted" };
+    if (res.status === 409) {
+      const body = (await res.json().catch(() => null)) as { error?: string } | null;
+      return { status: "conflict", message: body?.error ?? "Cannot delete this category." };
+    }
+    if (res.status === 401 || res.status === 422) return { status: "unauthorized" };
+    if (res.status === 403) {
+      const body = (await res.json().catch(() => null)) as { message?: string } | null;
+      return { status: "forbidden", message: body?.message ?? "Admins only." };
+    }
+    if (res.status === 404) return { status: "not-found" };
+    return { status: "error", message: `Request failed: ${res.status}` };
+  } catch (e) {
+    return { status: "error", message: e instanceof Error ? e.message : "Unknown error" };
+  }
+}
+
 /** Format a number as Indonesian Rupiah, e.g. 1450000 -> "Rp1.450.000". */
 export function formatRupiah(amount: number): string {
   return new Intl.NumberFormat("id-ID", {
