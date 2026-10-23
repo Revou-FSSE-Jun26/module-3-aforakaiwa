@@ -9,6 +9,7 @@
 // GET /categories/:id and refuse (with a visible error) if any exist.
 
 import { useEffect, useState } from "react";
+import toast from "react-hot-toast";
 import { useAuth } from "@/context/AuthContext";
 import {
   getCategories,
@@ -86,11 +87,14 @@ export default function CategoryManager() {
       );
       if (res.status === "created") {
         setCreateSuccess(`"${res.category.category_name}" created.`);
+        toast.success(`"${res.category.category_name}" created`);
         setName("");
         setDescription("");
         await refresh();
       } else {
-        setCreateError(res.status === "unauthorized" ? "Your session has expired. Please sign in again." : res.message);
+        const msg = res.status === "unauthorized" ? "Your session has expired. Please sign in again." : res.message;
+        setCreateError(msg);
+        toast.error(msg);
       }
     } finally {
       setCreating(false);
@@ -126,14 +130,18 @@ export default function CategoryManager() {
       if (res.status === "updated") {
         setEditingId(null);
         setActionSuccess("Category updated.");
+        toast.success("Category updated");
         await refresh();
       } else if (res.status === "unauthorized") {
-        setActionError("Your session has expired. Please sign in again.");
+        const msg = "Your session has expired. Please sign in again.";
+        setActionError(msg);
+        toast.error(msg);
       } else if (res.status === "not-found") {
         setActionError("That category no longer exists.");
         await refresh();
       } else {
         setActionError(res.message);
+        toast.error(res.message);
       }
     } finally {
       setBusyId(null);
@@ -153,9 +161,9 @@ export default function CategoryManager() {
       const detail = await getCategoryWithProducts(cat.category_id);
       const linked = detail?.products?.length ?? 0;
       if (linked > 0) {
-        setActionError(
-          `Cannot delete "${cat.category_name}": it has ${linked} linked product${linked === 1 ? "" : "s"}. Reassign or remove them first.`,
-        );
+        const msg = `Cannot delete "${cat.category_name}": it has ${linked} linked product${linked === 1 ? "" : "s"}. Reassign or remove them first.`;
+        setActionError(msg);
+        toast.error(msg);
         return;
       }
       const confirmed = window.confirm(`Delete "${cat.category_name}"?`);
@@ -164,16 +172,21 @@ export default function CategoryManager() {
       const res = await deleteCategory(cat.category_id, token);
       if (res.status === "deleted") {
         setActionSuccess(`"${cat.category_name}" deleted.`);
+        toast.success(`"${cat.category_name}" deleted`);
         await refresh();
       } else if (res.status === "conflict") {
         setActionError(res.message);
+        toast.error(res.message);
       } else if (res.status === "unauthorized") {
-        setActionError("Your session has expired. Please sign in again.");
+        const msg = "Your session has expired. Please sign in again.";
+        setActionError(msg);
+        toast.error(msg);
       } else if (res.status === "not-found") {
         setActionError("That category no longer exists.");
         await refresh();
       } else {
         setActionError(res.message);
+        toast.error(res.message);
       }
     } finally {
       setBusyId(null);

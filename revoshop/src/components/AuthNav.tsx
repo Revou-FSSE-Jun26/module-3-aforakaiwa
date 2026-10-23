@@ -6,6 +6,7 @@
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import toast from "react-hot-toast";
 import { useAuth } from "@/context/AuthContext";
 
 export default function AuthNav() {
@@ -32,6 +33,7 @@ export default function AuthNav() {
           type="button"
           onClick={() => {
             logout();
+            toast("Signed out");
             router.replace("/");
           }}
           className="rounded-md border border-gray-300 px-3 py-1.5 text-sm font-medium text-gray-700 transition hover:bg-gray-50"

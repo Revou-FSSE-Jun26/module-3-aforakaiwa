@@ -8,13 +8,24 @@
 // one place here. Nesting order is flat — Auth and Cart are independent.
 
 import type { ReactNode } from "react";
+import { Toaster } from "react-hot-toast";
 import { AuthProvider } from "@/context/AuthContext";
 import { CartProvider } from "@/context/CartContext";
 
 export default function Providers({ children }: { children: ReactNode }) {
   return (
     <AuthProvider>
-      <CartProvider>{children}</CartProvider>
+      <CartProvider>
+        {children}
+        {/* Global toast outlet — toasts can be fired from anywhere via toast(). */}
+        <Toaster
+          position="top-right"
+          toastOptions={{
+            duration: 3000,
+            success: { iconTheme: { primary: "#16a34a", secondary: "#fff" } },
+          }}
+        />
+      </CartProvider>
     </AuthProvider>
   );
 }

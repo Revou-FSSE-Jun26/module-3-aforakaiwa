@@ -7,6 +7,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import toast from "react-hot-toast";
 import { useAuth } from "@/context/AuthContext";
 import { destinationForRole } from "@/lib/auth";
 
@@ -79,9 +80,11 @@ export default function RegisterForm() {
         password,
       });
       if (result.ok) {
+        toast.success(`Welcome, ${result.user.username}!`);
         router.replace(destinationForRole(result.user.role));
       } else {
         setFormError(result.message);
+        toast.error(result.message);
       }
     } finally {
       setSubmitting(false);

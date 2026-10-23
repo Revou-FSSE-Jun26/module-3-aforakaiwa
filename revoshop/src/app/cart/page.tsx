@@ -6,12 +6,18 @@
 // checkout button that is disabled when the cart is empty.
 
 import Link from "next/link";
+import toast from "react-hot-toast";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import { useCart } from "@/context/CartContext";
 import { formatRupiah } from "@/lib/api";
 
 function CartContent() {
   const { items, total, isEmpty, removeFromCart } = useCart();
+
+  function handleRemove(productId: number, name: string) {
+    removeFromCart(productId);
+    toast(`${name} removed from cart`);
+  }
 
   return (
     <section className="space-y-6">
@@ -63,7 +69,7 @@ function CartContent() {
                   <td className="px-4 py-3 text-right">
                     <button
                       type="button"
-                      onClick={() => removeFromCart(item.product.product_id)}
+                      onClick={() => handleRemove(item.product.product_id, item.product.product_name)}
                       aria-label={`Remove ${item.product.product_name}`}
                       className="rounded-md border border-gray-300 px-3 py-1 text-xs font-medium text-red-600 transition hover:bg-red-50"
                     >

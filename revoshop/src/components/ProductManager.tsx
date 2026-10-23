@@ -7,6 +7,7 @@
 // error.
 
 import { useEffect, useState } from "react";
+import toast from "react-hot-toast";
 import { useAuth } from "@/context/AuthContext";
 import {
   getProductList,
@@ -78,19 +79,25 @@ export default function ProductManager() {
       const res = await deleteProduct(product.product_id, token);
       if (res.status === "deleted") {
         setActionSuccess(`"${product.product_name}" deleted.`);
+        toast.success(`"${product.product_name}" deleted`);
         await refresh();
       } else if (res.status === "conflict") {
         // The visible "active orders" guard error.
         setActionError(res.message);
+        toast.error(res.message);
       } else if (res.status === "unauthorized") {
-        setActionError("Your session has expired. Please sign in again.");
+        const msg = "Your session has expired. Please sign in again.";
+        setActionError(msg);
+        toast.error(msg);
       } else if (res.status === "not-found") {
         setActionError("That product no longer exists.");
         await refresh();
       } else if (res.status === "forbidden") {
         setActionError(res.message);
+        toast.error(res.message);
       } else {
         setActionError(res.message);
+        toast.error(res.message);
       }
     } finally {
       setDeletingId(null);
@@ -107,13 +114,15 @@ export default function ProductManager() {
           onUpdated={async (updated) => {
             setEditing(null);
             setActionSuccess(`"${updated.product_name}" updated.`);
+            toast.success(`"${updated.product_name}" updated`);
             await refresh();
           }}
         />
       ) : (
         <CreateProductForm
           categories={categories}
-          onCreated={async () => {
+          onCreated={async (product) => {
+            toast.success(`"${product.product_name}" created`);
             await refresh();
           }}
         />

@@ -6,6 +6,7 @@
 // can refresh its table.
 
 import { useState } from "react";
+import toast from "react-hot-toast";
 import { useAuth } from "@/context/AuthContext";
 import { createProduct } from "@/lib/api";
 import type { Category, Product } from "@/types";
@@ -106,12 +107,17 @@ export default function CreateProductForm({
         reset();
       } else if (res.status === "validation" || res.status === "conflict") {
         setFormError(res.message);
+        toast.error(res.message);
       } else if (res.status === "unauthorized") {
-        setFormError("Your session has expired. Please sign in again.");
+        const msg = "Your session has expired. Please sign in again.";
+        setFormError(msg);
+        toast.error(msg);
       } else if (res.status === "forbidden") {
         setFormError(res.message);
+        toast.error(res.message);
       } else {
         setFormError(res.message);
+        toast.error(res.message);
       }
     } finally {
       setSubmitting(false);

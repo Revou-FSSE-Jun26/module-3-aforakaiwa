@@ -9,6 +9,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import toast from "react-hot-toast";
 import { useAuth } from "@/context/AuthContext";
 import { useCart } from "@/context/CartContext";
 import { createOrder, formatRupiah } from "@/lib/api";
@@ -56,13 +57,18 @@ export default function CheckoutForm() {
 
       if (result.status === "created") {
         clearCart();
+        toast.success(`Order #${result.order.order_id} placed`);
         router.replace("/orders");
       } else if (result.status === "validation") {
         setFormError(result.message);
+        toast.error(result.message);
       } else if (result.status === "unauthorized") {
-        setFormError("Your session has expired. Please sign in again.");
+        const msg = "Your session has expired. Please sign in again.";
+        setFormError(msg);
+        toast.error(msg);
       } else {
         setFormError(result.message);
+        toast.error(result.message);
       }
     } finally {
       setSubmitting(false);

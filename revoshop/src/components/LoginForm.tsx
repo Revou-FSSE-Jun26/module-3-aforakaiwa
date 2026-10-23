@@ -7,6 +7,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import toast from "react-hot-toast";
 import { useAuth } from "@/context/AuthContext";
 import { destinationForRole } from "@/lib/auth";
 
@@ -49,11 +50,13 @@ export default function LoginForm() {
     try {
       const result = await login(email.trim(), password);
       if (result.ok) {
+        toast.success(`Welcome back, ${result.user.username}`);
         // replace() so the login page isn't left in history (Back won't
         // return the just-signed-in user to the form).
         router.replace(destinationForRole(result.user.role));
       } else {
         setFormError(result.message);
+        toast.error(result.message);
       }
     } finally {
       setSubmitting(false);

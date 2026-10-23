@@ -4,6 +4,7 @@
 // the product detail page. Out-of-stock products render a disabled button.
 // (Toast notifications are wired in a later stage.)
 
+import toast from "react-hot-toast";
 import { useCart } from "@/context/CartContext";
 import type { Product } from "@/types";
 
@@ -26,7 +27,10 @@ export default function AddToCartButton({
     <button
       type="button"
       disabled={!inStock}
-      onClick={() => addToCart(product, quantity)}
+      onClick={() => {
+        addToCart(product, quantity);
+        toast.success(`${product.product_name} added to cart`);
+      }}
       data-testid="add-to-cart"
       className={
         className ||
