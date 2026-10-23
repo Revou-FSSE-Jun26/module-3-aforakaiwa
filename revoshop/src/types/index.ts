@@ -2,6 +2,28 @@
 // These mirror the shape of the Flask API's `to_dict()` responses (Module 2).
 
 /**
+ * The two roles the backend assigns. New registrations default to "Customer";
+ * "Admin" accounts are provisioned separately. The casing matches the API
+ * exactly (it is compared directly for role-based redirects and guards).
+ */
+export type UserRole = "Customer" | "Admin";
+
+/**
+ * A user as returned by POST /users (register) and inside the POST /auth/login
+ * response. Matches User.to_dict() in the Flask backend.
+ */
+export interface User {
+  user_id: number;
+  email: string;
+  username: string;
+  full_name: string;
+  role: UserRole;
+  is_active: boolean;
+  created_at: string | null;
+  deleted_at: string | null;
+}
+
+/**
  * A product as returned by GET /products and GET /products/:id.
  * Matches Product.to_dict() in the Flask backend.
  */

@@ -8,6 +8,7 @@ import type {
   CategoryWithProducts,
   Order,
   PaginatedProducts,
+  User,
 } from "@/types";
 
 const BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL;
@@ -144,6 +145,247 @@ export async function getOrdersResult(token?: string): Promise<OrdersResult> {
       };
     }
     return { status: "ok", orders: (await res.json()) as Order[] };
+  } catch (e) {
+    return {
+      status: "error",
+      message: e instanceof Error ? e.message : "Unknown error",
+    };
+  }
+}
+
+// ---------------------------------------------------------------------------
+// Auth + product creation (write operations against the real Flask backend).
+//
+// POST /products is Admin-only (`@roles_required("Admin")`), so creating a
+// product is a two-step flow: log in to get a JWT, then send it as a Bearer
+// token on the POST. Both helpers model failure as data (a typed result)
+// rather than throwing, so the form can branch on the outcome.
+// ---------------------------------------------------------------------------
+
+/**
+ * Result of attempting to log in. On success we return BOTH the JWT and the
+ * user object (the backend sends the full user — including `role` — inside the
+ * login response), so the caller can persist the session and redirect by role
+ * without a second request.
+ */
+export type LoginResult =
+  | { status: "ok"; token: string; user: User }
+  | { status: "invalid" } // 401/403 — bad credentials or deactivated
+  | { status: "error"; message: string };
+
+/**
+ * POST /auth/login — exchange email + password for a JWT and the user record.
+ * Returns the token + user on success, or a classified failure.
+ */
+export async function login(
+  email: string,
+  password: string,
+): Promise<LoginResult> {
+  if (!BASE_URL) {
+    return { status: "error", message: "API base URL is not configured." };
+  }
+  try {
+    const res = await fetch(`${BASE_URL}/auth/login`, {
+      method: "POST",
+      cache: "no-store",
+      headers: {
+        "Content-Type": "application/json",
+        Accept: "application/json",
+      },
+      body: JSON.stringify({ email, password }),
+    });
+
+    if (res.status === 401 || res.status === 403) {
+      return { status: "invalid" };
+    }
+    if (!res.ok) {
+      return { status: "error", message: `Login failed: ${res.status}` };
+    }
+
+    const data = (await res.json()) as {
+      access_token?: string;
+      user?: User;
+    };
+    if (!data.access_token || !data.user) {
+      return {
+        status: "error",
+        message: "Login succeeded but the response was incomplete.",
+      };
+    }
+    return { status: "ok", token: data.access_token, user: data.user };
+  } catch (e) {
+    return {
+      status: "error",
+      message: e instanceof Error ? e.message : "Unknown error",
+    };
+  }
+}
+
+/** Fields POST /users (registration) accepts. */
+export interface RegisterInput {
+  email: string;
+  username: string;
+  full_name: string;
+  password: string;
+}
+
+/**
+ * Outcome of POST /users (register), mapped from the backend's status codes:
+ *  - 201 -> created (returns the new user; role defaults to "Customer")
+ *  - 400 -> validation error (field errors flattened to one message)
+ *  - 409 -> conflict (duplicate email or username)
+ *  - anything else / network -> generic error
+ */
+export type RegisterResult =
+  | { status: "created"; user: User }
+  | { status: "validation"; message: string }
+  | { status: "conflict"; message: string }
+  | { status: "error"; message: string };
+
+/**
+ * POST /users — create a new account. The backend does NOT return a token
+ * here, only the user, so the typical flow is: register, then call login() to
+ * obtain a JWT (auto-login after signup).
+ */
+export async function register(
+  input: RegisterInput,
+): Promise<RegisterResult> {
+  if (!BASE_URL) {
+    return { status: "error", message: "API base URL is not configured." };
+  }
+  try {
+    const res = await fetch(`${BASE_URL}/users`, {
+      method: "POST",
+      cache: "no-store",
+      headers: {
+        "Content-Type": "application/json",
+        Accept: "application/json",
+      },
+      body: JSON.stringify(input),
+    });
+
+    if (res.status === 201) {
+      const data = (await res.json()) as { user: User };
+      return { status: "created", user: data.user };
+    }
+    if (res.status === 400) {
+      const body = await res.json().catch(() => null);
+      return { status: "validation", message: formatValidationError(body) };
+    }
+    if (res.status === 409) {
+      const body = (await res.json().catch(() => null)) as { error?: string } | null;
+      return {
+        status: "conflict",
+        message: body?.error ?? "That email or username is already taken.",
+      };
+    }
+    return { status: "error", message: `Registration failed: ${res.status}` };
+  } catch (e) {
+    return {
+      status: "error",
+      message: e instanceof Error ? e.message : "Unknown error",
+    };
+  }
+}
+
+/** Fields the backend's ProductCreateSchema accepts on POST /products. */
+export interface CreateProductInput {
+  category_id: number;
+  product_name: string;
+  sku: string;
+  price: number;
+  stock_quantity: number;
+  description?: string;
+}
+
+/**
+ * Outcome of POST /products, mapped from the backend's real status codes:
+ *  - 201 -> created (with the new product)
+ *  - 400 -> validation error (field errors or a single message)
+ *  - 409 -> conflict (duplicate SKU)
+ *  - 401/422 -> not authenticated (missing/expired token)
+ *  - 403 -> authenticated but not an Admin
+ *  - anything else / network -> generic error
+ */
+export type CreateProductResult =
+  | { status: "created"; product: Product }
+  | { status: "validation"; message: string }
+  | { status: "conflict"; message: string }
+  | { status: "unauthorized" }
+  | { status: "forbidden"; message: string }
+  | { status: "error"; message: string };
+
+/**
+ * Flatten the backend's 400 body into a single human-readable string.
+ * Marshmallow returns `{ errors: { field: ["msg", ...] } }`; a non-JSON
+ * request body returns `{ error: "Request body must be JSON" }`.
+ */
+function formatValidationError(body: unknown): string {
+  if (body && typeof body === "object") {
+    const b = body as { error?: unknown; errors?: unknown };
+    if (typeof b.error === "string") return b.error;
+    if (b.errors && typeof b.errors === "object") {
+      const parts = Object.entries(b.errors as Record<string, unknown>).map(
+        ([field, msgs]) => {
+          const text = Array.isArray(msgs) ? msgs.join(", ") : String(msgs);
+          return `${field}: ${text}`;
+        },
+      );
+      if (parts.length) return parts.join(" · ");
+    }
+  }
+  return "Validation failed. Please check the fields.";
+}
+
+/**
+ * POST /products with a Bearer token. Classifies the response so the caller
+ * can show a success message, a form-level validation error, or a toast.
+ */
+export async function createProduct(
+  input: CreateProductInput,
+  token: string,
+): Promise<CreateProductResult> {
+  if (!BASE_URL) {
+    return { status: "error", message: "API base URL is not configured." };
+  }
+  try {
+    const res = await fetch(`${BASE_URL}/products`, {
+      method: "POST",
+      cache: "no-store",
+      headers: {
+        "Content-Type": "application/json",
+        Accept: "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+      body: JSON.stringify(input),
+    });
+
+    if (res.status === 201) {
+      const data = (await res.json()) as { product: Product };
+      return { status: "created", product: data.product };
+    }
+    if (res.status === 400) {
+      const body = await res.json().catch(() => null);
+      return { status: "validation", message: formatValidationError(body) };
+    }
+    if (res.status === 409) {
+      const body = (await res.json().catch(() => null)) as { error?: string } | null;
+      return {
+        status: "conflict",
+        message: body?.error ?? "That SKU already exists.",
+      };
+    }
+    if (res.status === 401 || res.status === 422) {
+      return { status: "unauthorized" };
+    }
+    if (res.status === 403) {
+      const body = (await res.json().catch(() => null)) as { message?: string } | null;
+      return {
+        status: "forbidden",
+        message: body?.message ?? "You need an Admin account to add products.",
+      };
+    }
+    return { status: "error", message: `Request failed: ${res.status}` };
   } catch (e) {
     return {
       status: "error",
