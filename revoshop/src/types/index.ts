@@ -90,6 +90,24 @@ export type StockState =
   | { kind: "in-stock"; quantity: number }
   | { kind: "out-of-stock" };
 
+/**
+ * A single line in an order, as returned inside GET /orders/:id. Includes the
+ * full product snapshot plus the unit price and computed line total.
+ */
+export interface OrderItem {
+  order_item_id: number;
+  product_id: number;
+  quantity: number;
+  unit_price: number;
+  line_total: number;
+  product: Product;
+}
+
+/** GET /orders/:id — an order plus its line items. */
+export interface OrderDetail extends Order {
+  items: OrderItem[];
+}
+
 /** Shape of the paginated GET /products response. */
 export interface PaginatedProducts {
   products: Product[];

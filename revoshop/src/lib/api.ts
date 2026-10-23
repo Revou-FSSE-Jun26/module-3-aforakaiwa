@@ -7,6 +7,7 @@ import type {
   Category,
   CategoryWithProducts,
   Order,
+  OrderDetail,
   PaginatedProducts,
   User,
 } from "@/types";
@@ -386,6 +387,81 @@ export async function createProduct(
       };
     }
     return { status: "error", message: `Request failed: ${res.status}` };
+  } catch (e) {
+    return {
+      status: "error",
+      message: e instanceof Error ? e.message : "Unknown error",
+    };
+  }
+}
+
+// ---------------------------------------------------------------------------
+// Reading orders from the client. Auth is client-side (JWT in localStorage),
+// so these take the user's token and run in the browser. The backend scopes
+// GET /orders to the token's own user automatically.
+// ---------------------------------------------------------------------------
+
+/** Outcome of GET /orders from the client. */
+export type FetchOrdersResult =
+  | { status: "ok"; orders: Order[] }
+  | { status: "unauthorized" }
+  | { status: "error"; message: string };
+
+/** GET /orders with a Bearer token (the user's own orders). */
+export async function fetchOrders(token: string): Promise<FetchOrdersResult> {
+  if (!BASE_URL) {
+    return { status: "error", message: "API base URL is not configured." };
+  }
+  try {
+    const res = await fetch(`${BASE_URL}/orders`, {
+      cache: "no-store",
+      headers: {
+        Accept: "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+    });
+    if (res.status === 401 || res.status === 422) return { status: "unauthorized" };
+    if (!res.ok) {
+      return { status: "error", message: `Orders request failed: ${res.status}` };
+    }
+    return { status: "ok", orders: (await res.json()) as Order[] };
+  } catch (e) {
+    return {
+      status: "error",
+      message: e instanceof Error ? e.message : "Unknown error",
+    };
+  }
+}
+
+/** Outcome of GET /orders/:id from the client. */
+export type FetchOrderDetailResult =
+  | { status: "ok"; order: OrderDetail }
+  | { status: "unauthorized" }
+  | { status: "not-found" }
+  | { status: "error"; message: string };
+
+/** GET /orders/:id with a Bearer token — the order plus its line items. */
+export async function fetchOrderDetail(
+  id: number | string,
+  token: string,
+): Promise<FetchOrderDetailResult> {
+  if (!BASE_URL) {
+    return { status: "error", message: "API base URL is not configured." };
+  }
+  try {
+    const res = await fetch(`${BASE_URL}/orders/${id}`, {
+      cache: "no-store",
+      headers: {
+        Accept: "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+    });
+    if (res.status === 401 || res.status === 422) return { status: "unauthorized" };
+    if (res.status === 404) return { status: "not-found" };
+    if (!res.ok) {
+      return { status: "error", message: `Order request failed: ${res.status}` };
+    }
+    return { status: "ok", order: (await res.json()) as OrderDetail };
   } catch (e) {
     return {
       status: "error",
