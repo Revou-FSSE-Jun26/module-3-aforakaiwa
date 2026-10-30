@@ -176,60 +176,23 @@ E2E_ADMIN_PASSWORD=your-admin-password
 - **`admin.spec.ts`** — full admin CRUD journey: create → edit → delete a
   product (self-cleaning), and create a category.
 
-## Known issue: Supabase platform incident (blocking live verification)
+## Verification status
 
-At the time of writing, the backend database (Supabase) is in an **ongoing
-platform incident on Supabase's side**, which currently blocks capturing the
-new Checkpoint 3 screenshots and running the E2E suite against the live API.
+Verified end-to-end against the live API:
 
-**What the Supabase dashboard shows:**
+- `npm run build` — passes (Next.js 16.4.0, TypeScript check clean, all routes
+  generated).
+- `npm run test:e2e` — the full Playwright suite passes (`auth`, `shopping`, and
+  `admin` specs) against `https://revoushop-afo.onrender.com`.
+- All major-page screenshots below were captured from the running app.
 
-- A site-wide banner: **"We are investigating a technical issue — Follow the
-  status page for updates."**
-- Project `aforakaiwa's Project` (host `pnnpgudkoakgyfokemqf.supabase.co`),
-  Primary Database region **Southeast Asia (Singapore)**, instance `14g.nano`.
-- Database **STATUS: Healthy**, with normal resource usage (CPU ~2%, RAM ~53%,
-  8/60 connections).
-- Yet the request panel reports a degraded **Success Rate of ~86%** (down from
-  100%), and the component rows (**Postgres, API Gateway, Realtime, Storage**)
-  are flagged with **warnings and errors**.
-
-**Observed effect on the API:** every data-backed endpoint
-(`/products`, `/categories`, `/orders`, …) returns **HTTP 500**, while `/`
-(which does not query the database) still returns 200.
-
-**Why this is not a frontend or application bug:**
-
-- Only endpoints that touch the database fail; the non-DB home route is fine.
-- The Flask app boots cleanly (verified locally: `create_app()` succeeds and all
-  routes register), so it is not a deploy/import error.
-- The Module 2 change that powers the admin order overview is covered by
-  **25 passing local tests** (SQLite, independent of Supabase).
-- The 500s return **instantly** (~0.1s), which indicates the app is up but its
-  connections to Postgres are failing — consistent with a pooler/platform
-  incident rather than our code or configuration.
-
-**Impact on deliverables (pending Supabase recovery):**
-
-- New screenshots (register, login, admin dashboard, and refreshed storefront
-  views) cannot be captured while live data won't load.
-- `npm run test:e2e` and a full `next build` (which prerenders `/categories` by
-  fetching the API) will succeed once the backend is reachable again.
-
-Everything in this frontend is implemented and verified as far as possible
-without a live backend (type-checks, lint, and client-only flows such as the
-cart were checked with a headless browser). The remaining live verification and
-screenshots will be completed once Supabase resolves the incident.
+> An earlier Supabase platform incident briefly made the hosted database return
+> HTTP 500 on data-backed endpoints; it has since recovered, and live
+> verification (build, E2E, screenshots) was completed afterward.
 
 ## Screenshots
 
-> ⚠️ **Screenshots for the new Checkpoint 3 views are not yet captured** — see
-> "Known issue: Supabase platform incident" above. They will be added here
-> (home, product listing, product detail, category listing, register, login,
-> admin dashboard) once the backend is reachable again.
-
-The following views were captured earlier against the live API and remain
-representative of the browsing experience:
+Captured against the live API, covering every major page.
 
 ### Home
 ![Home](./Doc/1-Home.png)
@@ -252,11 +215,20 @@ representative of the browsing experience:
 ### Cart
 ![Cart](./Doc/7-Cart.png)
 
-### Add product (earlier CP2 form; now in the admin dashboard)
+### Add product (admin dashboard form)
 ![Add product](./Doc/8-Add_product.png)
 
-> Pending capture once the backend is back: **register**, **login**, and the
-> **admin dashboard** (product/category CRUD, order overview).
+### Register
+![Register](./Doc/9-Register.png)
+
+### Login
+![Login](./Doc/10-Login.png)
+
+### Category listing
+![Categories](./Doc/11-Categories.png)
+
+### Admin dashboard
+![Admin dashboard](./Doc/12-Admin-Dashboard.png)
 
 ## Notes on backend behavior (Module 2)
 
