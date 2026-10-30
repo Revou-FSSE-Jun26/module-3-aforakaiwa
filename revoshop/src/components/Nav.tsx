@@ -38,7 +38,7 @@ function isActive(pathname: string, href: string): boolean {
  * Until auth has hydrated we render just the public links to avoid a
  * hydration mismatch and link flicker.
  */
-export default function Nav() {
+export default function Nav({ stacked = false }: { stacked?: boolean }) {
   const pathname = usePathname();
   const { isAuthenticated, isAdmin, isLoading } = useAuth();
   const { itemCount } = useCart();
@@ -58,7 +58,13 @@ export default function Nav() {
   }
 
   return (
-    <nav className="flex items-center gap-1">
+    <nav
+      className={
+        stacked
+          ? "flex flex-col gap-1"
+          : "flex flex-wrap items-center gap-1 md:flex-nowrap"
+      }
+    >
       {links.map((link) => {
         const active = isActive(pathname, link.href);
         return (

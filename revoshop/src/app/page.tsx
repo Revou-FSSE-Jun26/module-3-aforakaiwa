@@ -55,7 +55,7 @@ export default async function Home() {
             Products are temporarily unavailable. Please try again later.
           </p>
         ) : (
-          <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
             {featured.map((product) => (
               <ProductCard
                 key={product.product_id}
@@ -67,7 +67,7 @@ export default async function Home() {
         )}
       </section>
 
-      <section className="grid gap-4 sm:grid-cols-3">
+      <section className="grid grid-cols-1 gap-4 sm:grid-cols-3">
         <Card className="p-5">
           <h2 className="font-semibold text-gray-900">Products</h2>
           <p className="mt-1 text-sm text-gray-600">

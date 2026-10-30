@@ -6,7 +6,7 @@ Flask API and adds authentication, a persistent cart, checkout, customer
 orders, and a full admin dashboard (product and category CRUD + order
 overview), with toast notifications throughout.
 
-- **Live App (Vercel):** https://module-3-aforakaiwa.vercel.app
+- **Live App (Vercel):** https://revoshop-afo.vercel.app
 - **Live API (Module 2):** https://revoushop-afo.onrender.com
   (Flask on Render + PostgreSQL on Supabase)
 

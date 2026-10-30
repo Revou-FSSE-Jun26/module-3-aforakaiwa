@@ -9,7 +9,7 @@ import { useRouter } from "next/navigation";
 import toast from "react-hot-toast";
 import { useAuth } from "@/context/AuthContext";
 
-export default function AuthNav() {
+export default function AuthNav({ stacked = false }: { stacked?: boolean }) {
   const router = useRouter();
   const { user, isAuthenticated, isLoading, logout } = useAuth();
 
@@ -22,7 +22,13 @@ export default function AuthNav() {
 
   if (isAuthenticated && user) {
     return (
-      <div className="flex items-center gap-3">
+      <div
+        className={
+          stacked
+            ? "flex flex-col items-start gap-3"
+            : "flex items-center gap-3"
+        }
+      >
         <span className="text-sm text-gray-700">
           Hi,{" "}
           <span className="font-semibold text-gray-900" data-testid="username">
@@ -45,7 +51,11 @@ export default function AuthNav() {
   }
 
   return (
-    <div className="flex items-center gap-2">
+    <div
+      className={
+        stacked ? "flex flex-col items-start gap-2" : "flex items-center gap-2"
+      }
+    >
       <Link
         href="/login"
         className="rounded-md px-3 py-1.5 text-sm font-medium text-gray-700 transition hover:bg-brand-light hover:text-brand"

@@ -245,7 +245,8 @@ export default function CategoryManager() {
         ) : categories.length === 0 ? (
           <p className="px-4 py-6 text-sm text-gray-500">No categories yet.</p>
         ) : (
-          <table className="w-full text-sm">
+          <div className="overflow-x-auto">
+          <table className="w-full min-w-[32rem] text-sm">
             <thead>
               <tr className="border-b border-gray-200 text-left text-gray-500">
                 <th className="px-4 py-3 font-medium">Name</th>
@@ -295,6 +296,7 @@ export default function CategoryManager() {
               ))}
             </tbody>
           </table>
+          </div>
         )}
       </div>
     </div>
