@@ -32,7 +32,9 @@ export async function registerCustomer(
   await page.getByLabel("Full name").fill(user.fullName);
   await page.getByLabel("Username").fill(user.username);
   await page.getByLabel("Email").fill(user.email);
-  await page.getByLabel("Password").fill(user.password);
+  // Exact match: "Password" alone would also match "Confirm password".
+  await page.getByLabel("Password", { exact: true }).fill(user.password);
+  await page.getByLabel("Confirm password").fill(user.password);
   await page.getByRole("button", { name: "Create account" }).click();
   // Customer lands on the storefront home; header shows the username.
   await expect(page).toHaveURL("/", { timeout: 60_000 });

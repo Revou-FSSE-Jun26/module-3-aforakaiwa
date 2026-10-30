@@ -16,11 +16,12 @@ interface FieldErrors {
   username?: string;
   full_name?: string;
   password?: string;
+  confirm_password?: string;
 }
 
 // Mirror the backend's constraints so we fail fast before the request.
 const USERNAME_MIN = 3;
-const PASSWORD_MIN = 6;
+const PASSWORD_MIN = 8;
 
 export default function RegisterForm() {
   const router = useRouter();
@@ -30,6 +31,7 @@ export default function RegisterForm() {
   const [username, setUsername] = useState("");
   const [fullName, setFullName] = useState("");
   const [password, setPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
   const [fieldErrors, setFieldErrors] = useState<FieldErrors>({});
   const [formError, setFormError] = useState("");
   const [submitting, setSubmitting] = useState(false);
@@ -58,6 +60,12 @@ export default function RegisterForm() {
       next.password = "Password is required.";
     } else if (password.length < PASSWORD_MIN) {
       next.password = `Password must be at least ${PASSWORD_MIN} characters.`;
+    }
+
+    if (!confirmPassword) {
+      next.confirm_password = "Please confirm your password.";
+    } else if (confirmPassword !== password) {
+      next.confirm_password = "Passwords do not match.";
     }
 
     return next;
@@ -175,9 +183,25 @@ export default function RegisterForm() {
           value={password}
           onChange={(e) => setPassword(e.target.value)}
           className={fieldClass(!!fieldErrors.password)}
-          placeholder="At least 6 characters"
+          placeholder="At least 8 characters"
         />
         {errorText(fieldErrors.password)}
+      </div>
+
+      <div>
+        <label htmlFor="reg-confirm-password" className={labelClass}>
+          Confirm password
+        </label>
+        <input
+          id="reg-confirm-password"
+          type="password"
+          autoComplete="new-password"
+          value={confirmPassword}
+          onChange={(e) => setConfirmPassword(e.target.value)}
+          className={fieldClass(!!fieldErrors.confirm_password)}
+          placeholder="Re-enter your password"
+        />
+        {errorText(fieldErrors.confirm_password)}
       </div>
 
       {formError && (
