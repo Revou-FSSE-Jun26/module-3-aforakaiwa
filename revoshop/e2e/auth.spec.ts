@@ -23,7 +23,12 @@ test.describe("Authentication", () => {
     await login(page, "definitely-not-real@test.com", "wrongpassword");
     // Stays on /login and surfaces an inline error.
     await expect(page).toHaveURL(/\/login$/);
-    await expect(page.getByRole("alert")).toContainText(/invalid/i);
+    // Scope to the alert that actually carries text: getByRole("alert") also
+    // matches Next.js's empty route announcer (<div id="__next-route-announcer__">),
+    // which trips Playwright's strict mode. Filtering by text targets the real one.
+    await expect(
+      page.getByRole("alert").filter({ hasText: /invalid/i }),
+    ).toBeVisible();
   });
 
   test("register validates required fields", async ({ page }) => {

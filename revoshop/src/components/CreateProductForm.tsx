@@ -37,10 +37,21 @@ export default function CreateProductForm({
   const [sku, setSku] = useState("");
   const [price, setPrice] = useState("");
   const [stock, setStock] = useState("");
-  const [categoryId, setCategoryId] = useState(
-    categories[0] ? String(categories[0].category_id) : "",
-  );
+  // Empty string means "no explicit choice yet". The parent fetches categories
+  // AFTER this form mounts, so we can't seed the first category into state at
+  // init time (the list is empty then). Instead we derive the EFFECTIVE value
+  // below, defaulting to the first category once the list arrives — this keeps
+  // the selection in sync with the (async) categories prop without a
+  // setState-in-effect, which the project's lint rules forbid.
+  const [categoryId, setCategoryId] = useState("");
   const [description, setDescription] = useState("");
+
+  // The value actually shown/submitted: the admin's explicit pick if any,
+  // otherwise the first available category. Prevents the dropdown from sitting
+  // on the disabled "Select a category…" placeholder when categories load
+  // after mount, which would fail validation on submit.
+  const effectiveCategoryId =
+    categoryId || (categories[0] ? String(categories[0].category_id) : "");
 
   const [fieldErrors, setFieldErrors] = useState<FieldErrors>({});
   const [formError, setFormError] = useState("");
@@ -53,7 +64,7 @@ export default function CreateProductForm({
     setPrice("");
     setStock("");
     setDescription("");
-    setCategoryId(categories[0] ? String(categories[0].category_id) : "");
+    setCategoryId("");
     setFieldErrors({});
   }
 
@@ -71,7 +82,7 @@ export default function CreateProductForm({
     const stockNum = Number(stock);
     if (stock === "" || Number.isNaN(stockNum) || stockNum < 0 || !Number.isInteger(stockNum))
       next.stock_quantity = "Enter a whole number of 0 or more.";
-    if (!categoryId) next.category_id = "Pick a category.";
+    if (!effectiveCategoryId) next.category_id = "Pick a category.";
     return next;
   }
 
@@ -92,7 +103,7 @@ export default function CreateProductForm({
     try {
       const res = await createProduct(
         {
-          category_id: Number(categoryId),
+          category_id: Number(effectiveCategoryId),
           product_name: productName.trim(),
           sku: sku.trim(),
           price: Number(price),
@@ -159,7 +170,7 @@ export default function CreateProductForm({
         <div>
           <label htmlFor="cp-cat" className={labelClass}>Category</label>
           {categories.length > 0 ? (
-            <select id="cp-cat" value={categoryId}
+            <select id="cp-cat" value={effectiveCategoryId}
               onChange={(e) => setCategoryId(e.target.value)}
               className={fieldClass(!!fieldErrors.category_id)}>
               <option value="" disabled>Select a category…</option>
@@ -168,7 +179,7 @@ export default function CreateProductForm({
               ))}
             </select>
           ) : (
-            <input id="cp-cat" type="number" min="1" value={categoryId}
+            <input id="cp-cat" type="number" min="1" value={effectiveCategoryId}
               onChange={(e) => setCategoryId(e.target.value)}
               className={fieldClass(!!fieldErrors.category_id)} placeholder="Category ID" />
           )}
